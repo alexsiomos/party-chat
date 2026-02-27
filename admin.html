@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Admin Panel — Neon Party</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-pink: #ff006e;
+    --neon-cyan: #00f5ff;
+    --neon-yellow: #ffbe0b;
+    --neon-purple: #8338ec;
+    --bg-dark: #050508;
+    --bg-card: #0d0d14;
+    --bg-input: #12121e;
+    --text-main: #f0f0ff;
+    --text-dim: #6b6b8a;
+    --border: rgba(255,0,110,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100dvh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 50%, rgba(131,56,236,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 30%, rgba(255,0,110,0.12) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* LOGIN */
+  .login-wrap {
+    display: flex;
+    height: 100dvh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .logo-icon {
+    width: 80px; height: 80px;
+    margin: 0 auto 12px;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    background: linear-gradient(135deg, #ffbe0b, #ff006e);
+    box-shadow: 0 0 35px rgba(255,190,11,0.5);
+  }
+
+  .logo-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; letter-spacing: 4px;
+    color: var(--neon-yellow);
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .card {
+    background: var(--bg-card); border: 1px solid rgba(255,190,11,0.2);
+    border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 360px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+
+  .card-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 3px; color: var(--neon-yellow); margin-bottom: 6px; }
+  .card-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 24px; }
+  .input-label { font-size: 11px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; display: block; }
+
+  .input-field {
+    width: 100%; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 14px 16px; color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 600;
+    outline: none; transition: border-color 0.2s;
+  }
+  .input-field:focus { border-color: var(--neon-yellow); }
+  .input-field::placeholder { color: var(--text-dim); font-weight: 400; }
+
+  .btn-primary {
+    width: 100%; background: linear-gradient(135deg, #ffbe0b, #ff006e);
+    border: none; border-radius: 12px; padding: 16px; color: white;
+    font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px;
+    cursor: pointer; margin-top: 12px; box-shadow: 0 4px 20px rgba(255,190,11,0.4);
+  }
+  .btn-primary:active { transform: scale(0.97); }
+
+  .error-msg { color: var(--neon-pink); font-size: 13px; margin-top: 10px; text-align: center; display: none; }
+
+  /* PANEL */
+  #panel { display: none; }
+
+  .admin-header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(13,13,20,0.98); border-bottom: 1px solid rgba(255,190,11,0.3);
+    padding: 14px 16px; display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .admin-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 4px; color: var(--neon-yellow); }
+
+  .logout-btn {
+    background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+    padding: 8px 14px; color: var(--text-dim); font-family: 'Rajdhani', sans-serif;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+
+  .admin-content { padding: 16px; display: flex; flex-direction: column; gap: 16px; max-width: 500px; margin: 0 auto; }
+
+  .admin-card { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; }
+  .admin-card-title { font-size: 11px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 12px; }
+
+  .stat-row { display: flex; gap: 12px; }
+  .stat-box { flex: 1; background: var(--bg-input); border-radius: 12px; padding: 12px; text-align: center; }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--neon-cyan); line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-top: 4px; }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+  .toggle-info { flex: 1; }
+  .toggle-name { font-size: 16px; font-weight: 700; }
+  .toggle-desc { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+  .toggle-switch {
+    width: 56px; height: 30px; background: rgba(255,255,255,0.1); border-radius: 15px;
+    position: relative; cursor: pointer; transition: background 0.3s; flex-shrink: 0; border: none; outline: none;
+  }
+  .toggle-switch.on { background: var(--neon-pink); box-shadow: 0 0 15px rgba(255,0,110,0.5); }
+  .toggle-knob { width: 22px; height: 22px; background: white; border-radius: 50%; position: absolute; top: 4px; left: 4px; transition: left 0.3s; pointer-events: none; }
+  .toggle-switch.on .toggle-knob { left: 30px; }
+
+  .announce-input, .kick-input {
+    width: 100%; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 12px 14px; color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600;
+    outline: none; margin-bottom: 8px;
+  }
+  .announce-input::placeholder, .kick-input::placeholder { color: var(--text-dim); font-weight: 400; }
+
+  .btn-announce {
+    width: 100%; background: linear-gradient(135deg,rgba(255,190,11,0.3),rgba(255,190,11,0.1));
+    border: 1px solid rgba(255,190,11,0.4); border-radius: 12px; padding: 13px;
+    color: var(--neon-yellow); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; cursor: pointer;
+  }
+
+  .btn-kick {
+    width: 100%; background: linear-gradient(135deg,rgba(255,0,110,0.3),rgba(131,56,236,0.3));
+    border: 1px solid rgba(255,0,110,0.4); border-radius: 12px; padding: 13px;
+    color: var(--neon-pink); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; cursor: pointer;
+  }
+
+  .btn-admin {
+    width: 100%; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 13px; color: var(--text-main); font-family: 'Rajdhani', sans-serif;
+    font-size: 15px; font-weight: 700; cursor: pointer; text-align: left;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .btn-admin.danger { color: var(--neon-pink); border-color: rgba(255,0,110,0.2); }
+  .btn-admin:last-child { margin-bottom: 0; }
+
+  .admin-msgs { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .admin-msg-item {
+    background: var(--bg-input); border-radius: 10px; padding: 10px 12px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+  }
+  .admin-msg-content { flex: 1; }
+  .admin-msg-nick { font-size: 12px; color: var(--neon-cyan); letter-spacing: 1px; margin-bottom: 2px; }
+  .admin-msg-text { font-size: 14px; font-weight: 600; word-break: break-word; }
+  .btn-delete-msg { background: none; border: none; color: var(--neon-pink); cursor: pointer; font-size: 16px; opacity: 0.6; }
+  .btn-delete-msg:hover { opacity: 1; }
+
+  .toast {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: rgba(13,13,20,0.95); border: 1px solid var(--neon-cyan); border-radius: 12px;
+    padding: 10px 20px; font-size: 14px; color: var(--neon-cyan);
+    opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; z-index: 9998;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Leaderboard in admin */
+  .lb-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--bg-input); border-radius: 12px; margin-bottom: 8px; }
+  .lb-rank { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--text-dim); width: 28px; text-align: center; }
+  .lb-rank.gold { color: #ffd700; }
+  .lb-rank.silver { color: #c0c0c0; }
+  .lb-rank.bronze { color: #cd7f32; }
+  .lb-nick { flex: 1; font-size: 16px; font-weight: 700; }
+  .lb-count { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--neon-cyan); }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="logo-icon">⚙️</div>
+  <div class="logo-name">Admin Panel</div>
+  <div class="card">
+    <div class="card-title">Admin Access</div>
+    <div class="card-desc">Βάλε τον κωδικό διαχειριστή.</div>
+    <label class="input-label">Κωδικός</label>
+    <input class="input-field" id="passInput" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')login()">
+    <button class="btn-primary" onclick="login()">ΣΥΝΔΕΣΗ</button>
+    <div class="error-msg" id="errMsg">Λάθος κωδικός!</div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="panel">
+  <div class="admin-header">
+    <div class="admin-title">⚙️ Admin Panel</div>
+    <button class="logout-btn" onclick="logout()">Έξοδος</button>
+  </div>
+  <div class="admin-content">
+
+    <div class="admin-card">
+      <div class="admin-card-title">📊 Στατιστικά</div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num" id="statOnline">0</div><div class="stat-label">Online</div></div>
+        <div class="stat-box"><div class="stat-num" id="statMsgs">0</div><div class="stat-label">Μηνύματα</div></div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">🔌 Έλεγχος Chat</div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-name" id="toggleName">Chat Κλειστό</div>
+          <div class="toggle-desc">Ενεργοποίησε/απενεργοποίησε για όλους</div>
+        </div>
+        <button class="toggle-switch" id="chatToggle" onclick="toggleChat()">
+          <div class="toggle-knob"></div>
+        </button>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">📢 Ανακοίνωση</div>
+      <input class="announce-input" id="announceInput" placeholder="Γράψε ανακοίνωση...">
+      <button class="btn-announce" onclick="sendAnnouncement()">ΑΠΟΣΤΟΛΗ ΣΕ ΟΛΟΥΣ</button>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">🚫 Kick Χρήστη</div>
+      <input class="kick-input" id="kickInput" type="number" placeholder="Αριθμός χρήστη (π.χ. 47)" inputmode="numeric">
+      <button class="btn-kick" onclick="kickUser()">KICK ΧΡΗΣΤΗ</button>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">🏆 Leaderboard Live</div>
+      <div id="lbList"></div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">💬 Τελευταία Μηνύματα</div>
+      <div class="admin-msgs" id="adminMsgs"></div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">🗑️ Καθαρισμός</div>
+      <button class="btn-admin danger" onclick="clearMessages()">🗑️ Διαγραφή όλων των μηνυμάτων</button>
+      <button class="btn-admin danger" onclick="resetSession()">⚡ Νέα βραδιά (reset όλα)</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+  import { getDatabase, ref, push, onValue, set, get, remove, increment } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBBZHmubvSUKaXjeV508mt_IPDMJRm3lRI",
+    authDomain: "party-live-chat.firebaseapp.com",
+    databaseURL: "https://party-live-chat-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "party-live-chat",
+    storageBucket: "party-live-chat.firebasestorage.app",
+    messagingSenderId: "676640078460",
+    appId: "1:676640078460:web:17b79209fdc5e00dec67f9"
+  };
+
+  // ⚠️ ΑΛΛΑΞΕ ΑΥΤΟΝ ΤΟΝ ΚΩΔΙΚΟ
+  const ADMIN_PASSWORD = "admin1234";
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const chatEnabledRef = ref(db, 'settings/chatEnabled');
+  const messagesRef = ref(db, 'messages');
+  const presenceRef = ref(db, 'presence');
+  const kickedRef = ref(db, 'kicked');
+  const leaderboardRef = ref(db, 'leaderboard');
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ---- LOGIN ----
+  window.login = function() {
+    const pass = document.getElementById('passInput').value;
+    if (pass === ADMIN_PASSWORD) {
+      document.getElementById('loginWrap').style.display = 'none';
+      document.getElementById('panel').style.display = 'block';
+      startListeners();
+    } else {
+      document.getElementById('errMsg').style.display = 'block';
+    }
+  };
+
+  window.logout = function() {
+    document.getElementById('panel').style.display = 'none';
+    document.getElementById('loginWrap').style.display = 'flex';
+    document.getElementById('passInput').value = '';
+  };
+
+  // ---- LISTENERS ----
+  function startListeners() {
+    // Chat status
+    onValue(chatEnabledRef, snap => {
+      const on = snap.val();
+      const toggle = document.getElementById('chatToggle');
+      const name = document.getElementById('toggleName');
+      if (on) { toggle.classList.add('on'); name.textContent = 'Chat Ανοιχτό ✓'; }
+      else { toggle.classList.remove('on'); name.textContent = 'Chat Κλειστό'; }
+    });
+
+    // Presence
+    onValue(presenceRef, snap => {
+      document.getElementById('statOnline').textContent = snap.val() ? Object.keys(snap.val()).length : 0;
+    });
+
+    // Messages
+    onValue(messagesRef, snap => {
+      const data = snap.val();
+      const msgs = data ? Object.entries(data) : [];
+      document.getElementById('statMsgs').textContent = msgs.length;
+
+      const adminMsgs = document.getElementById('adminMsgs');
+      adminMsgs.innerHTML = '';
+      msgs.slice(-20).reverse().forEach(([id, msg]) => {
+        if (msg.type === 'system' || msg.type === 'announcement') return;
+        const item = document.createElement('div');
+        item.className = 'admin-msg-item';
+        item.innerHTML = `
+          <div class="admin-msg-content">
+            <div class="admin-msg-nick">#${escHtml(msg.nick)}${msg.type==='private'?' → #'+escHtml(msg.to):''}</div>
+            <div class="admin-msg-text">${msg.gif ? '🎬 GIF' : escHtml(msg.text||'')}</div>
+          </div>
+          <button class="btn-delete-msg" onclick="window._del('${id}')">✕</button>`;
+        adminMsgs.appendChild(item);
+      });
+    });
+
+    // Leaderboard live
+    onValue(leaderboardRef, snap => {
+      const data = snap.val();
+      const list = document.getElementById('lbList');
+      if (!data) { list.innerHTML = '<div style="color:var(--text-dim);font-size:13px;padding:8px">Κανείς δεν έχει στείλει μήνυμα ακόμα!</div>'; return; }
+      const sorted = Object.values(data).sort((a,b) => b.count - a.count).slice(0,10);
+      const medals = ['gold','silver','bronze'];
+      list.innerHTML = sorted.map((u,i) => `
+        <div class="lb-row">
+          <div class="lb-rank ${medals[i]||''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+          <div class="lb-nick">#${escHtml(u.nick)}</div>
+          <div class="lb-count">${u.count}</div>
+        </div>`).join('');
+    });
+  }
+
+  // ---- ACTIONS ----
+  window.toggleChat = async function() {
+    const snap = await get(chatEnabledRef);
+    const current = snap.val();
+    if (current) await remove(leaderboardRef);
+    await set(chatEnabledRef, !current);
+    showToast(current ? 'Chat απενεργοποιήθηκε!' : 'Chat ενεργοποιήθηκε!');
+  };
+
+  window.sendAnnouncement = async function() {
+    const text = document.getElementById('announceInput').value.trim();
+    if (!text) return;
+    await push(messagesRef, { type: 'announcement', text, ts: Date.now() });
+    document.getElementById('announceInput').value = '';
+    showToast('Ανακοίνωση στάλθηκε!');
+  };
+
+  window.kickUser = async function() {
+    const nick = document.getElementById('kickInput').value.trim();
+    if (!nick) return;
+    await set(ref(db, `kicked/${nick}`), true);
+    showToast(`#${nick} kickαρίστηκε!`);
+    document.getElementById('kickInput').value = '';
+  };
+
+  window._del = async function(id) {
+    await remove(ref(db, `messages/${id}`));
+  };
+
+  window.clearMessages = async function() {
+    if (confirm('Να διαγραφούν όλα τα μηνύματα;')) {
+      await remove(messagesRef);
+      showToast('Μηνύματα διαγράφηκαν!');
+    }
+  };
+
+  window.resetSession = async function() {
+    if (confirm('Reset όλης της βραδιάς;')) {
+      await remove(messagesRef);
+      await remove(kickedRef);
+      await remove(presenceRef);
+      await remove(leaderboardRef);
+      await set(chatEnabledRef, false);
+      showToast('Νέα βραδιά ξεκίνησε!');
+    }
+  };
+</script>
+</body>
+</html>
