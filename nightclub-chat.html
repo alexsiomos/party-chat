@@ -696,6 +696,12 @@
   let openPickerId = null;
   let gifSearchTimeout = null;
 
+  // Check admin IMMEDIATELY before any Firebase listener runs
+  if (new URLSearchParams(window.location.search).get('admin') === 'true') {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('adminLoginScreen').classList.add('active');
+  }
+
   const chatEnabledRef = ref(db, 'settings/chatEnabled');
   const messagesRef = ref(db, 'messages');
   const presenceRef = ref(db, 'presence');
@@ -1214,10 +1220,7 @@
     }
   };
 
-  // Admin access via URL
-  if (new URLSearchParams(window.location.search).get('admin') === 'true') {
-    showScreen('adminLoginScreen');
-  }
+  // Admin access via URL — handled above at init
 </script>
 </body>
 </html>
