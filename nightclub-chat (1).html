@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>NEON PARTY — Live Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-pink: #ff006e;
+    --neon-cyan: #00f5ff;
+    --neon-yellow: #ffbe0b;
+    --neon-purple: #8338ec;
+    --neon-green: #06d6a0;
+    --bg-dark: #050508;
+    --bg-card: #0d0d14;
+    --bg-input: #12121e;
+    --text-main: #f0f0ff;
+    --text-dim: #6b6b8a;
+    --border: rgba(255,0,110,0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif;
+    height: 100dvh;
+    overflow: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 50%, rgba(131,56,236,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 30%, rgba(255,0,110,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 60% 80%, rgba(0,245,255,0.08) 0%, transparent 60%);
+    pointer-events: none;
+    animation: bgPulse 8s ease-in-out infinite alternate;
+  }
+
+  @keyframes bgPulse {
+    0% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .screen {
+    display: none;
+    height: 100dvh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .screen.active { display: flex; }
+
+  /* ===== LOGO ===== */
+  .logo-wrap { text-align: center; margin-bottom: 32px; }
+
+  .logo-icon {
+    width: 80px; height: 80px;
+    margin: 0 auto 12px;
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    animation: logoPulse 6s ease-in-out infinite;
+  }
+
+  .logo-icon.small {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    font-size: 18px;
+    animation: logoPulse 6s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes logoPulse {
+    0%   { background: linear-gradient(135deg,#ff006e,#8338ec); box-shadow: 0 0 35px rgba(255,0,110,0.7),0 0 70px rgba(255,0,110,0.3); }
+    25%  { background: linear-gradient(135deg,#00f5ff,#8338ec); box-shadow: 0 0 35px rgba(0,245,255,0.7),0 0 70px rgba(0,245,255,0.3); }
+    50%  { background: linear-gradient(135deg,#8338ec,#ff006e); box-shadow: 0 0 35px rgba(131,56,236,0.7),0 0 70px rgba(131,56,236,0.3); }
+    75%  { background: linear-gradient(135deg,#ffbe0b,#ff006e); box-shadow: 0 0 35px rgba(255,190,11,0.7),0 0 70px rgba(255,190,11,0.3); }
+    100% { background: linear-gradient(135deg,#ff006e,#8338ec); box-shadow: 0 0 35px rgba(255,0,110,0.7),0 0 70px rgba(255,0,110,0.3); }
+  }
+
+  .logo-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px; letter-spacing: 6px;
+    background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    line-height: 1;
+  }
+
+  .logo-sub { font-size: 13px; letter-spacing: 4px; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; }
+
+  /* ===== CARD ===== */
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+    padding: 28px 24px; width: 100%; max-width: 360px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .card-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 3px; color: var(--neon-cyan); margin-bottom: 6px; }
+  .card-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 24px; line-height: 1.5; }
+  .input-group { margin-bottom: 16px; }
+  .input-label { font-size: 11px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; display: block; }
+
+  .input-field {
+    width: 100%; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 14px 16px; color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 2px;
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-field:focus { border-color: var(--neon-pink); box-shadow: 0 0 0 3px rgba(255,0,110,0.15); }
+  .input-field::placeholder { color: var(--text-dim); font-weight: 400; letter-spacing: 1px; }
+
+  .btn-primary {
+    width: 100%; background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+    border: none; border-radius: 12px; padding: 16px; color: white;
+    font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px;
+    cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(255,0,110,0.4); margin-top: 8px;
+  }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-primary:hover { box-shadow: 0 6px 30px rgba(255,0,110,0.6); }
+
+  .error-msg { color: var(--neon-pink); font-size: 13px; margin-top: 10px; text-align: center; display: none; }
+
+  /* ===== DISABLED ===== */
+  .disabled-wrap { text-align: center; }
+  .disabled-icon { font-size: 56px; margin-bottom: 16px; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.05);opacity:0.7} }
+  .disabled-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 4px; color: var(--neon-yellow); margin-bottom: 8px; }
+  .disabled-text { color: var(--text-dim); font-size: 15px; line-height: 1.6; }
+
+  /* ===== COUNTDOWN SCREEN ===== */
+  #countdownScreen {
+    background: var(--bg-dark);
+  }
+
+  .countdown-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: min(50vw, 220px);
+    line-height: 1;
+    animation: neonColorShift 6s ease-in-out infinite;
+    text-align: center;
+    filter: drop-shadow(0 0 30px currentColor);
+  }
+
+  .countdown-msg {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(22px, 6vw, 38px);
+    letter-spacing: 4px;
+    text-align: center;
+    animation: neonColorShift 6s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px currentColor);
+    line-height: 1.3;
+    padding: 0 20px;
+  }
+
+  @keyframes neonColorShift {
+    0%   { color: #ff006e; }
+    25%  { color: #00f5ff; }
+    50%  { color: #8338ec; }
+    75%  { color: #ffbe0b; }
+    100% { color: #ff006e; }
+  }
+
+  /* ===== CHAT SCREEN ===== */
+  #chatScreen { padding: 0; justify-content: flex-start; }
+
+  .chat-header {
+    width: 100%; background: rgba(13,13,20,0.95); backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border); padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0; z-index: 10; gap: 8px;
+  }
+
+  .chat-header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+
+  .chat-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px;
+    background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+  .online-badge {
+    background: rgba(0,245,255,0.1); border: 1px solid rgba(0,245,255,0.3);
+    border-radius: 20px; padding: 3px 10px; font-size: 12px; color: var(--neon-cyan);
+    letter-spacing: 1px; display: flex; align-items: center; gap: 5px;
+  }
+  .online-dot { width: 6px; height: 6px; background: var(--neon-cyan); border-radius: 50%; animation: blink 1.5s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+  .leaderboard-btn {
+    background: rgba(255,190,11,0.1); border: 1px solid rgba(255,190,11,0.3);
+    border-radius: 20px; padding: 3px 10px; font-size: 12px; color: var(--neon-yellow);
+    letter-spacing: 1px; cursor: pointer; white-space: nowrap;
+  }
+
+  /* Private mode indicator */
+  .pm-bar {
+    width: 100%; background: rgba(131,56,236,0.15); border-bottom: 1px solid rgba(131,56,236,0.4);
+    padding: 6px 16px; display: none; align-items: center; justify-content: space-between;
+    font-size: 12px; color: var(--neon-purple); letter-spacing: 1px;
+  }
+  .pm-bar.active { display: flex; }
+  .pm-cancel { background: none; border: none; color: var(--neon-pink); cursor: pointer; font-size: 16px; }
+
+  .messages-wrap {
+    flex: 1; overflow-y: auto; padding: 16px;
+    display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth;
+  }
+  .messages-wrap::-webkit-scrollbar { width: 3px; }
+  .messages-wrap::-webkit-scrollbar-thumb { background: var(--neon-pink); border-radius: 3px; }
+
+  /* ===== MESSAGES ===== */
+  .message { display: flex; flex-direction: column; max-width: 82%; animation: msgIn 0.25s ease-out; }
+  @keyframes msgIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+
+  .message.own { align-self: flex-end; align-items: flex-end; }
+  .message.other { align-self: flex-start; align-items: flex-start; }
+  .message.system { align-self: center; align-items: center; max-width: 90%; }
+  .message.announcement { align-self: stretch; max-width: 100%; }
+  .message.private { align-self: flex-end; align-items: flex-end; }
+  .message.private-in { align-self: flex-start; align-items: flex-start; }
+
+  .msg-nick { font-size: 11px; letter-spacing: 1px; color: var(--neon-cyan); margin-bottom: 3px; padding: 0 4px; cursor: pointer; }
+  .message.own .msg-nick { color: var(--neon-pink); cursor: default; }
+
+  .msg-bubble {
+    padding: 10px 14px; border-radius: 16px; font-size: 15px; font-weight: 600;
+    line-height: 1.4; word-break: break-word; position: relative;
+  }
+
+  .message.own .msg-bubble {
+    background: linear-gradient(135deg,rgba(255,0,110,0.3),rgba(131,56,236,0.3));
+    border: 1px solid rgba(255,0,110,0.3); border-bottom-right-radius: 4px;
+  }
+  .message.other .msg-bubble {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    border-bottom-left-radius: 4px;
+  }
+  .message.system .msg-bubble {
+    background: rgba(0,245,255,0.08); border: 1px solid rgba(0,245,255,0.2);
+    border-radius: 20px; font-size: 12px; color: var(--neon-cyan); letter-spacing: 1px; padding: 6px 14px;
+  }
+  .message.announcement .msg-bubble {
+    background: linear-gradient(135deg,rgba(255,190,11,0.15),rgba(255,190,11,0.05));
+    border: 1px solid rgba(255,190,11,0.4); border-radius: 12px; color: var(--neon-yellow);
+    text-align: center; padding: 12px 16px; font-size: 14px; letter-spacing: 1px; width: 100%;
+  }
+  .message.private .msg-bubble, .message.private-in .msg-bubble {
+    background: linear-gradient(135deg,rgba(131,56,236,0.25),rgba(131,56,236,0.1));
+    border: 1px solid rgba(131,56,236,0.4);
+  }
+  .announcement-label { font-size: 10px; letter-spacing: 3px; color: var(--neon-yellow); opacity: 0.7; margin-bottom: 4px; text-align: center; width: 100%; }
+  .pm-label { font-size: 10px; letter-spacing: 2px; color: var(--neon-purple); opacity: 0.8; margin-bottom: 3px; padding: 0 4px; }
+
+  /* GIF in bubble */
+  .msg-gif { max-width: 200px; border-radius: 10px; display: block; margin-top: 4px; }
+
+  /* Reactions */
+  .msg-reactions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; padding: 0 2px; }
+  .reaction-chip {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px; padding: 2px 8px; font-size: 14px; cursor: pointer;
+    transition: background 0.15s, transform 0.1s; display: flex; align-items: center; gap: 3px;
+  }
+  .reaction-chip:active { transform: scale(0.9); }
+  .reaction-chip.mine { background: rgba(255,0,110,0.15); border-color: rgba(255,0,110,0.3); }
+  .reaction-chip span { font-size: 11px; color: var(--text-dim); font-weight: 600; }
+
+  /* Reaction picker */
+  .reaction-picker {
+    position: absolute; bottom: calc(100% + 8px);
+    background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 8px 12px; display: flex; gap: 8px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6); z-index: 100;
+    animation: pickerIn 0.15s ease-out;
+  }
+  .reaction-picker.own-side { right: 0; }
+  .reaction-picker.other-side { left: 0; }
+  @keyframes pickerIn { from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)} }
+  .reaction-btn { font-size: 22px; cursor: pointer; transition: transform 0.1s; background: none; border: none; padding: 2px; }
+  .reaction-btn:active { transform: scale(1.3); }
+
+  .msg-time { font-size: 10px; color: var(--text-dim); margin-top: 3px; padding: 0 4px; }
+
+  /* ===== INPUT ===== */
+  .chat-input-wrap {
+    width: 100%; background: rgba(13,13,20,0.95); backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border); padding: 10px 12px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0;
+  }
+
+  .input-action-btn {
+    width: 40px; height: 40px; background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+    color: var(--text-dim); font-size: 18px; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .input-action-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
+
+  .chat-input {
+    flex: 1; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 10px 14px; color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 600;
+    outline: none; resize: none; max-height: 100px; line-height: 1.4;
+    transition: border-color 0.2s;
+  }
+  .chat-input:focus { border-color: rgba(255,0,110,0.5); }
+  .chat-input::placeholder { color: var(--text-dim); font-weight: 400; }
+
+  .send-btn {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+    border: none; border-radius: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 15px rgba(255,0,110,0.4);
+  }
+  .send-btn:active { transform: scale(0.92); }
+  .send-btn svg { width: 18px; height: 18px; fill: white; }
+
+  /* ===== GIF PICKER ===== */
+  .gif-panel {
+    position: fixed; bottom: 70px; left: 0; right: 0;
+    background: var(--bg-card); border-top: 1px solid var(--border);
+    padding: 12px; z-index: 200; display: none; flex-direction: column; gap: 10px;
+    max-height: 280px;
+  }
+  .gif-panel.open { display: flex; }
+  .gif-search {
+    background: var(--bg-input); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px; padding: 8px 12px; color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif; font-size: 15px; outline: none; width: 100%;
+  }
+  .gif-search::placeholder { color: var(--text-dim); }
+  .gif-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; overflow-y: auto; }
+  .gif-item { border-radius: 8px; overflow: hidden; cursor: pointer; aspect-ratio: 4/3; }
+  .gif-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .gif-loading { color: var(--text-dim); text-align: center; font-size: 13px; padding: 20px; }
+
+  /* ===== LEADERBOARD MODAL ===== */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 500;
+    display: none; align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px;
+    padding: 24px; width: 100%; max-width: 360px; max-height: 80vh; overflow-y: auto;
+    animation: modalIn 0.2s ease-out;
+  }
+  @keyframes modalIn { from{opacity:0;transform:scale(0.9)}to{opacity:1;transform:scale(1)} }
+
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 4px; color: var(--neon-yellow); }
+  .modal-close { background: none; border: none; color: var(--text-dim); font-size: 22px; cursor: pointer; }
+
+  .lb-row {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+    background: var(--bg-input); border-radius: 12px; margin-bottom: 8px;
+  }
+  .lb-rank { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--text-dim); width: 28px; text-align: center; }
+  .lb-rank.gold { color: #ffd700; }
+  .lb-rank.silver { color: #c0c0c0; }
+  .lb-rank.bronze { color: #cd7f32; }
+  .lb-nick { flex: 1; font-size: 16px; font-weight: 700; }
+  .lb-count { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--neon-cyan); }
+  .lb-empty { text-align: center; color: var(--text-dim); padding: 20px; font-size: 14px; }
+
+  /* ===== ADMIN SCREEN ===== */
+  #adminScreen { justify-content: flex-start; padding: 0; overflow-y: auto; }
+
+  .admin-header {
+    width: 100%; background: rgba(13,13,20,0.98); border-bottom: 1px solid rgba(255,190,11,0.3);
+    padding: 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .admin-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 4px; color: var(--neon-yellow); }
+
+  .admin-content { width: 100%; padding: 16px; display: flex; flex-direction: column; gap: 16px; max-width: 500px; margin: 0 auto; }
+
+  .admin-card { background: var(--bg-card); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 16px; }
+  .admin-card-title { font-size: 11px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 12px; }
+
+  .stat-row { display: flex; gap: 12px; }
+  .stat-box { flex: 1; background: var(--bg-input); border-radius: 12px; padding: 12px; text-align: center; }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--neon-cyan); line-height: 1; }
+  .stat-label { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; margin-top: 4px; }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+  .toggle-info { flex: 1; }
+  .toggle-name { font-size: 16px; font-weight: 700; }
+  .toggle-desc { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+  .toggle-switch {
+    width: 56px; height: 30px; background: rgba(255,255,255,0.1); border-radius: 15px;
+    position: relative; cursor: pointer; transition: background 0.3s; flex-shrink: 0;
+    border: none; outline: none;
+  }
+  .toggle-switch.on { background: var(--neon-pink); box-shadow: 0 0 15px rgba(255,0,110,0.5); }
+  .toggle-knob { width: 22px; height: 22px; background: white; border-radius: 50%; position: absolute; top: 4px; left: 4px; transition: left 0.3s; pointer-events: none; }
+  .toggle-switch.on .toggle-knob { left: 30px; }
+
+  .btn-admin {
+    width: 100%; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px; padding: 13px; color: var(--text-main); font-family: 'Rajdhani', sans-serif;
+    font-size: 15px; font-weight: 700; letter-spacing: 1px; cursor: pointer;
+    transition: background 0.2s; text-align: left; display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+  }
+  .btn-admin:last-child { margin-bottom: 0; }
+  .btn-admin:hover { background: rgba(255,255,255,0.06); }
+  .btn-admin.danger { color: var(--neon-pink); border-color: rgba(255,0,110,0.2); }
+  .btn-admin.danger:hover { background: rgba(255,0,110,0.1); }
+
+  .announce-input, .kick-input {
+    width: 100%; background: var(--bg-input); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 12px 14px; color: var(--text-main);
+    font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600;
+    outline: none; margin-bottom: 8px;
+  }
+  .announce-input:focus { border-color: rgba(255,190,11,0.5); }
+  .announce-input::placeholder, .kick-input::placeholder { color: var(--text-dim); font-weight: 400; }
+  .kick-input { font-size: 16px; letter-spacing: 2px; }
+  .kick-input:focus { border-color: rgba(255,0,110,0.5); }
+
+  .btn-announce {
+    width: 100%; background: linear-gradient(135deg,rgba(255,190,11,0.3),rgba(255,190,11,0.1));
+    border: 1px solid rgba(255,190,11,0.4); border-radius: 12px; padding: 13px;
+    color: var(--neon-yellow); font-family: 'Bebas Neue', sans-serif; font-size: 18px;
+    letter-spacing: 3px; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-kick {
+    width: 100%; background: linear-gradient(135deg,rgba(255,0,110,0.3),rgba(131,56,236,0.3));
+    border: 1px solid rgba(255,0,110,0.4); border-radius: 12px; padding: 13px;
+    color: var(--neon-pink); font-family: 'Bebas Neue', sans-serif; font-size: 18px;
+    letter-spacing: 3px; cursor: pointer;
+  }
+
+  .admin-msgs { max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .admin-msg-item {
+    background: var(--bg-input); border-radius: 10px; padding: 10px 12px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+  }
+  .admin-msg-content { flex: 1; }
+  .admin-msg-nick { font-size: 12px; color: var(--neon-cyan); letter-spacing: 1px; margin-bottom: 2px; }
+  .admin-msg-text { font-size: 14px; font-weight: 600; word-break: break-word; }
+  .btn-delete-msg { background: none; border: none; color: var(--neon-pink); cursor: pointer; font-size: 16px; flex-shrink: 0; opacity: 0.6; transition: opacity 0.2s; }
+  .btn-delete-msg:hover { opacity: 1; }
+
+  .logout-btn {
+    background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+    padding: 8px 14px; color: var(--text-dim); font-family: 'Rajdhani', sans-serif;
+    font-size: 13px; font-weight: 600; letter-spacing: 1px; cursor: pointer;
+  }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: rgba(13,13,20,0.95); border: 1px solid var(--neon-cyan); border-radius: 12px;
+    padding: 10px 20px; font-size: 14px; letter-spacing: 1px; color: var(--neon-cyan);
+    opacity: 0; transition: opacity 0.3s, transform 0.3s; pointer-events: none; z-index: 9998; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Admin login */
+  #adminLoginScreen { background: var(--bg-dark); }
+</style>
+</head>
+<body>
+
+<!-- ===== DISABLED ===== -->
+<div class="screen active" id="disabledScreen">
+  <div class="logo-wrap">
+    <div class="logo-icon">🎉</div>
+    <!-- ΑΛΛΑΞΕ ΕΔΩ: Όνομα party -->
+    <div class="logo-name">NEON PARTY</div>
+    <div class="logo-sub">Live Chat</div>
+  </div>
+  <div class="disabled-wrap">
+    <div class="disabled-icon">🔒</div>
+    <div class="disabled-title">Chat Κλειστό</div>
+    <div class="disabled-text">Το chat δεν είναι διαθέσιμο αυτή τη στιγμή.<br>Σύντομα θα ανοίξει!</div>
+  </div>
+</div>
+
+<!-- ===== COUNTDOWN ===== -->
+<div class="screen" id="countdownScreen">
+  <div class="logo-wrap" style="margin-bottom:16px">
+    <div class="logo-icon">🎉</div>
+    <div class="logo-name">NEON PARTY</div>
+  </div>
+  <div class="countdown-number" id="countdownNum">10</div>
+  <div class="countdown-msg" id="countdownMsg" style="display:none">Let's Chat Until The Sunrise</div>
+</div>
+
+<!-- ===== LOGIN ===== -->
+<div class="screen" id="loginScreen">
+  <div class="logo-wrap">
+    <div class="logo-icon">🎉</div>
+    <div class="logo-name">NEON PARTY</div>
+    <div class="logo-sub">Live Chat</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Καλώς ήρθες!</div>
+    <div class="card-desc">Βάλε τον αριθμό που έλαβες στην είσοδο για να μπεις στο chat.</div>
+    <div class="input-group">
+      <label class="input-label">Αριθμός / Nickname</label>
+      <input class="input-field" id="nicknameInput" type="number" placeholder="π.χ. 47" inputmode="numeric">
+    </div>
+    <button class="btn-primary" onclick="joinChat()">ΜΠΕΣ ΣΤΟ CHAT</button>
+    <div class="error-msg" id="loginError">Βάλε έναν έγκυρο αριθμό!</div>
+  </div>
+</div>
+
+<!-- ===== CHAT ===== -->
+<div class="screen" id="chatScreen">
+  <div class="chat-header">
+    <div class="chat-header-left">
+      <div class="logo-icon small">🎉</div>
+      <div class="chat-title">NEON PARTY</div>
+    </div>
+    <div class="header-right">
+      <button class="leaderboard-btn" onclick="openLeaderboard()">🏆 Top</button>
+      <div class="online-badge">
+        <div class="online-dot"></div>
+        <span id="onlineCount">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PM bar -->
+  <div class="pm-bar" id="pmBar">
+    <span id="pmBarText">💜 Private σε #??</span>
+    <button class="pm-cancel" onclick="cancelPM()">✕</button>
+  </div>
+
+  <div class="messages-wrap" id="messagesWrap"></div>
+
+  <!-- GIF Panel -->
+  <div class="gif-panel" id="gifPanel">
+    <input class="gif-search" id="gifSearch" placeholder="Αναζήτησε GIF..." oninput="searchGifs(this.value)">
+    <div class="gif-grid" id="gifGrid">
+      <div class="gif-loading">Γράψε κάτι για να βρεις GIF...</div>
+    </div>
+  </div>
+
+  <div class="chat-input-wrap">
+    <button class="input-action-btn" onclick="toggleGifPanel()" title="GIF">🎬</button>
+    <textarea class="chat-input" id="chatInput" placeholder="Γράψε μήνυμα..." rows="1" maxlength="300"></textarea>
+    <button class="send-btn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ===== LEADERBOARD MODAL ===== -->
+<div class="modal-overlay" id="lbModal" onclick="closeLbIfOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🏆 Leaderboard</div>
+      <button class="modal-close" onclick="closeLeaderboard()">✕</button>
+    </div>
+    <div id="lbContent"><div class="lb-empty">Φόρτωση...</div></div>
+  </div>
+</div>
+
+<!-- ===== ADMIN LOGIN ===== -->
+<div class="screen" id="adminLoginScreen">
+  <div class="logo-wrap">
+    <div class="logo-icon">⚙️</div>
+    <div class="logo-name" style="font-size:28px">ADMIN PANEL</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Admin Access</div>
+    <div class="card-desc">Βάλε τον κωδικό διαχειριστή.</div>
+    <div class="input-group">
+      <label class="input-label">Κωδικός</label>
+      <input class="input-field" id="adminPassInput" type="password" placeholder="••••••">
+    </div>
+    <button class="btn-primary" onclick="adminLogin()">ΣΥΝΔΕΣΗ</button>
+    <div class="error-msg" id="adminError">Λάθος κωδικός!</div>
+  </div>
+</div>
+
+<!-- ===== ADMIN PANEL ===== -->
+<div class="screen" id="adminScreen">
+  <div class="admin-header">
+    <div class="admin-title">⚙️ Admin Panel</div>
+    <button class="logout-btn" onclick="adminLogout()">Έξοδος</button>
+  </div>
+  <div class="admin-content">
+
+    <div class="admin-card">
+      <div class="admin-card-title">📊 Στατιστικά</div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num" id="adminOnline">0</div><div class="stat-label">Online</div></div>
+        <div class="stat-box"><div class="stat-num" id="adminMsgCount">0</div><div class="stat-label">Μηνύματα</div></div>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">🔌 Έλεγχος Chat</div>
+      <div class="toggle-row">
+        <div class="toggle-info">
+          <div class="toggle-name" id="toggleName">Chat Κλειστό</div>
+          <div class="toggle-desc">Ενεργοποίησε/απενεργοποίησε το chat</div>
+        </div>
+        <button class="toggle-switch" id="chatToggle" onclick="toggleChat()">
+          <div class="toggle-knob"></div>
+        </button>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">📢 Ανακοίνωση</div>
+      <input class="announce-input" id="announceInput" placeholder="Γράψε ανακοίνωση...">
+      <button class="btn-announce" onclick="sendAnnouncement()">ΑΠΟΣΤΟΛΗ ΣΕ ΟΛΟΥΣ</button>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">🚫 Kick Χρήστη</div>
+      <input class="kick-input" id="kickInput" type="number" placeholder="Αριθμός χρήστη (π.χ. 47)" inputmode="numeric">
+      <button class="btn-kick" onclick="kickUser()">KICK ΧΡΗΣΤΗ</button>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">💬 Μηνύματα (διαχείριση)</div>
+      <div class="admin-msgs" id="adminMsgs"></div>
+    </div>
+
+    <div class="admin-card">
+      <div class="admin-card-title">🗑️ Καθαρισμός</div>
+      <button class="btn-admin danger" onclick="clearAllMessages()">🗑️ Διαγραφή όλων των μηνυμάτων</button>
+      <button class="btn-admin danger" onclick="resetSession()">⚡ Νέα βραδιά (reset όλα)</button>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+  import { getDatabase, ref, push, onValue, set, get, remove, onDisconnect, serverTimestamp, increment, update } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-database.js";
+
+  // ============================================================
+  // 🔥 FIREBASE CONFIG — ΑΛΛΑΞΕ ΤΑ ΠΑΡΑΚΑΤΩ ΜΕ ΤΑ ΔΙΚΑ ΣΟΥ
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyBBZHmubvSUKaXjeV508mt_IPDMJRm3lRI",
+    authDomain: "party-live-chat.firebaseapp.com",
+    databaseURL: "https://party-live-chat-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "party-live-chat",
+    storageBucket: "party-live-chat.firebasestorage.app",
+    messagingSenderId: "676640078460",
+    appId: "1:676640078460:web:17b79209fdc5e00dec67f9"
+  };
+
+  // ⚠️ ΑΛΛΑΞΕ ΑΥΤΟΝ ΤΟΝ ΚΩΔΙΚΟ — ADMIN PASSWORD
+  const ADMIN_PASSWORD = "admin1234";
+
+  // Tenor GIF API key (δωρεάν από tenor.com/developer)
+  const TENOR_KEY = "ΒΑΛΕ_ΤΟ_TENOR_API_KEY";
+  // ============================================================
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  let currentNick = null;
+  let isAdmin = false;
+  let myPresenceRef = null;
+  let pmTarget = null;
+  let openPickerId = null;
+  let gifSearchTimeout = null;
+
+  const chatEnabledRef = ref(db, 'settings/chatEnabled');
+  const messagesRef = ref(db, 'messages');
+  const presenceRef = ref(db, 'presence');
+  const kickedRef = ref(db, 'kicked');
+  const leaderboardRef = ref(db, 'leaderboard');
+
+  // ---- COUNTDOWN ----
+  function runCountdown(onDone) {
+    showScreen('countdownScreen');
+    let n = 10;
+    const numEl = document.getElementById('countdownNum');
+    const msgEl = document.getElementById('countdownMsg');
+    numEl.style.display = 'block';
+    msgEl.style.display = 'none';
+
+    // Vibrate pattern on each tick
+    const tick = () => {
+      numEl.textContent = n;
+      if (navigator.vibrate) navigator.vibrate(80);
+      if (n <= 0) {
+        numEl.style.display = 'none';
+        msgEl.style.display = 'block';
+        if (navigator.vibrate) navigator.vibrate([100,50,100,50,200]);
+        setTimeout(onDone, 3000);
+        return;
+      }
+      n--;
+      setTimeout(tick, 1000);
+    };
+    tick();
+  }
+
+  // ---- CHAT STATUS ----
+  let prevChatEnabled = null;
+  onValue(chatEnabledRef, (snap) => {
+    const enabled = snap.val();
+    if (isAdmin) return;
+
+    if (currentNick) {
+      if (!enabled) {
+        showScreen('disabledScreen');
+        currentNick = null;
+      }
+      return;
+    }
+
+    // First time OR transitioning from disabled -> enabled: show countdown
+    if (enabled && prevChatEnabled === false) {
+      runCountdown(() => showScreen('loginScreen'));
+    } else if (enabled && prevChatEnabled === null) {
+      // Page load while chat already enabled: skip countdown
+      showScreen('loginScreen');
+    } else if (!enabled) {
+      showScreen('disabledScreen');
+    }
+    prevChatEnabled = enabled;
+  });
+
+  // ---- MESSAGES ----
+  onValue(messagesRef, (snap) => {
+    const data = snap.val();
+    const msgs = data ? Object.entries(data) : [];
+
+    const wrap = document.getElementById('messagesWrap');
+    if (wrap && document.getElementById('chatScreen').classList.contains('active')) {
+      const wasAtBottom = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight < 80;
+      const prevCount = wrap.querySelectorAll('.message').length;
+      wrap.innerHTML = '';
+      msgs.forEach(([id, msg]) => {
+        if (msg.type === 'private') {
+          if (msg.to === currentNick || msg.nick === currentNick) {
+            wrap.appendChild(buildMessage(msg, id));
+          }
+        } else {
+          wrap.appendChild(buildMessage(msg, id));
+        }
+      });
+      if (wasAtBottom || msgs.length > prevCount) wrap.scrollTop = wrap.scrollHeight;
+
+      // Vibrate on new message (not own)
+      const lastMsg = msgs[msgs.length - 1];
+      if (lastMsg && lastMsg[1].nick !== currentNick && lastMsg[1].type === 'user' && msgs.length > prevCount) {
+        if (navigator.vibrate) navigator.vibrate(30);
+      }
+    }
+
+    // Admin panel
+    const adminMsgs = document.getElementById('adminMsgs');
+    if (adminMsgs && isAdmin) {
+      adminMsgs.innerHTML = '';
+      msgs.slice(-30).reverse().forEach(([id, msg]) => {
+        if (msg.type === 'system' || msg.type === 'announcement') return;
+        const item = document.createElement('div');
+        item.className = 'admin-msg-item';
+        item.innerHTML = `
+          <div class="admin-msg-content">
+            <div class="admin-msg-nick">#${msg.nick}${msg.type==='private'?' → #'+msg.to:''}</div>
+            <div class="admin-msg-text">${msg.gif ? '🎬 GIF' : escHtml(msg.text||'')}</div>
+          </div>
+          <button class="btn-delete-msg" onclick="window._deleteMsg('${id}')">✕</button>`;
+        adminMsgs.appendChild(item);
+      });
+      document.getElementById('adminMsgCount').textContent = msgs.length;
+    }
+  });
+
+  // ---- PRESENCE ----
+  onValue(presenceRef, (snap) => {
+    const count = snap.val() ? Object.keys(snap.val()).length : 0;
+    document.getElementById('onlineCount').textContent = count;
+    const adminOnline = document.getElementById('adminOnline');
+    if (adminOnline) adminOnline.textContent = count;
+  });
+
+  // ---- KICKED ----
+  onValue(kickedRef, (snap) => {
+    if (!currentNick || isAdmin) return;
+    const kicked = snap.val();
+    if (kicked && kicked[currentNick]) {
+      showToast('Αφαιρέθηκες από το chat.');
+      currentNick = null;
+      showScreen('disabledScreen');
+    }
+  });
+
+  // ---- HELPERS ----
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function fmtTime(ts) {
+    if (!ts) return '';
+    return new Date(ts).toLocaleTimeString('el-GR', {hour:'2-digit', minute:'2-digit'});
+  }
+
+  // ---- BUILD MESSAGE ----
+  function buildMessage(msg, id) {
+    const el = document.createElement('div');
+
+    if (msg.type === 'system') {
+      el.className = 'message system';
+      el.innerHTML = `<div class="msg-bubble">${escHtml(msg.text)}</div>`;
+      return el;
+    }
+
+    if (msg.type === 'announcement') {
+      el.className = 'message announcement';
+      el.innerHTML = `<div class="announcement-label">📢 ΑΝΑΚΟΙΝΩΣΗ</div><div class="msg-bubble">${escHtml(msg.text)}</div>`;
+      return el;
+    }
+
+    const isOwn = msg.nick === currentNick;
+    if (msg.type === 'private') {
+      el.className = `message ${isOwn ? 'private' : 'private-in'}`;
+    } else {
+      el.className = `message ${isOwn ? 'own' : 'other'}`;
+    }
+
+    const isPM = msg.type === 'private';
+    const pmLabel = isPM ? `<div class="pm-label">💜 Private${isOwn ? ' → #'+msg.to : ' από #'+msg.nick}</div>` : '';
+    const nickHtml = `<div class="msg-nick" ${!isOwn ? `onclick="startPM('${msg.nick}')"` : ''}>#${escHtml(msg.nick)}</div>`;
+
+    let contentHtml = '';
+    if (msg.gif) {
+      contentHtml = `<img class="msg-gif" src="${escHtml(msg.gif)}" loading="lazy" alt="GIF">`;
+    } else {
+      contentHtml = escHtml(msg.text || '');
+    }
+
+    // Reactions
+    const reactions = msg.reactions || {};
+    const reactionEmojis = ['❤️','🔥','😂','🎉','👀','💜'];
+    let reactionsHtml = `<div class="msg-reactions" id="react-${id}">`;
+    Object.entries(reactions).forEach(([emoji, users]) => {
+      const count = Object.keys(users).length;
+      const isMine = currentNick && users[currentNick];
+      reactionsHtml += `<div class="reaction-chip ${isMine?'mine':''}" onclick="window._toggleReaction('${id}','${emoji}')">${emoji} <span>${count}</span></div>`;
+    });
+    reactionsHtml += '</div>';
+
+    el.innerHTML = `
+      ${pmLabel}
+      ${nickHtml}
+      <div class="msg-bubble" style="position:relative">
+        ${contentHtml}
+        <div class="reaction-picker ${isOwn?'own-side':'other-side'}" id="picker-${id}" style="display:none">
+          ${reactionEmojis.map(e => `<button class="reaction-btn" onclick="window._toggleReaction('${id}','${e}');event.stopPropagation()">${e}</button>`).join('')}
+        </div>
+      </div>
+      ${reactionsHtml}
+      <div class="msg-time">${fmtTime(msg.ts)}</div>`;
+
+    // Long press to show reaction picker
+    let pressTimer;
+    const bubble = el.querySelector('.msg-bubble');
+    bubble.addEventListener('touchstart', () => {
+      pressTimer = setTimeout(() => {
+        if (navigator.vibrate) navigator.vibrate(50);
+        openReactionPicker(id);
+      }, 500);
+    });
+    bubble.addEventListener('touchend', () => clearTimeout(pressTimer));
+    bubble.addEventListener('touchmove', () => clearTimeout(pressTimer));
+    bubble.addEventListener('mousedown', () => {
+      pressTimer = setTimeout(() => openReactionPicker(id), 500);
+    });
+    bubble.addEventListener('mouseup', () => clearTimeout(pressTimer));
+
+    return el;
+  }
+
+  function openReactionPicker(id) {
+    if (openPickerId && openPickerId !== id) {
+      const prev = document.getElementById(`picker-${openPickerId}`);
+      if (prev) prev.style.display = 'none';
+    }
+    const picker = document.getElementById(`picker-${id}`);
+    if (picker) {
+      picker.style.display = picker.style.display === 'none' ? 'flex' : 'none';
+    }
+    openPickerId = id;
+  }
+
+  document.addEventListener('click', (e) => {
+    if (openPickerId && !e.target.closest('.msg-bubble')) {
+      const prev = document.getElementById(`picker-${openPickerId}`);
+      if (prev) prev.style.display = 'none';
+      openPickerId = null;
+    }
+  });
+
+  // ---- REACTION ----
+  window._toggleReaction = async function(msgId, emoji) {
+    if (!currentNick) return;
+    const rRef = ref(db, `messages/${msgId}/reactions/${emoji}/${currentNick}`);
+    const snap = await get(rRef);
+    if (snap.exists()) {
+      await remove(rRef);
+    } else {
+      await set(rRef, true);
+    }
+    const picker = document.getElementById(`picker-${msgId}`);
+    if (picker) picker.style.display = 'none';
+  };
+
+  // ---- JOIN ----
+  window.joinChat = async function() {
+    const val = document.getElementById('nicknameInput').value.trim();
+    if (!val || isNaN(val)) {
+      document.getElementById('loginError').style.display = 'block';
+      return;
+    }
+    document.getElementById('loginError').style.display = 'none';
+    currentNick = val;
+
+    const kickSnap = await get(ref(db, `kicked/${currentNick}`));
+    if (kickSnap.exists()) {
+      document.getElementById('loginError').textContent = 'Δεν μπορείς να μπεις στο chat.';
+      document.getElementById('loginError').style.display = 'block';
+      currentNick = null;
+      return;
+    }
+
+    myPresenceRef = ref(db, `presence/${currentNick}_${Date.now()}`);
+    await set(myPresenceRef, { nick: currentNick, joinedAt: serverTimestamp() });
+    onDisconnect(myPresenceRef).remove();
+
+    push(messagesRef, { type: 'system', text: `#${currentNick} μπήκε στο chat`, ts: Date.now() });
+
+    showScreen('chatScreen');
+    setTimeout(() => {
+      const wrap = document.getElementById('messagesWrap');
+      if (wrap) wrap.scrollTop = wrap.scrollHeight;
+    }, 300);
+  };
+
+  // ---- SEND MESSAGE ----
+  window.sendMessage = async function() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text || !currentNick) return;
+
+    const msgData = { nick: currentNick, text, ts: Date.now(), type: pmTarget ? 'private' : 'user' };
+    if (pmTarget) { msgData.to = pmTarget; cancelPM(); }
+
+    await push(messagesRef, msgData);
+
+    // Update leaderboard
+    await set(ref(db, `leaderboard/${currentNick}`), { nick: currentNick, count: increment(1) });
+
+    input.value = '';
+    input.style.height = 'auto';
+  };
+
+  // ---- PM ----
+  window.startPM = function(nick) {
+    if (nick === currentNick) return;
+    pmTarget = nick;
+    const bar = document.getElementById('pmBar');
+    document.getElementById('pmBarText').textContent = `💜 Private σε #${nick}`;
+    bar.classList.add('active');
+    document.getElementById('chatInput').placeholder = `Private στον #${nick}...`;
+    document.getElementById('chatInput').focus();
+  };
+
+  window.cancelPM = function() {
+    pmTarget = null;
+    document.getElementById('pmBar').classList.remove('active');
+    document.getElementById('chatInput').placeholder = 'Γράψε μήνυμα...';
+  };
+
+  // ---- GIF ----
+  window.toggleGifPanel = function() {
+    const panel = document.getElementById('gifPanel');
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) {
+      document.getElementById('gifSearch').focus();
+      loadTrendingGifs();
+    }
+  };
+
+  async function loadTrendingGifs() {
+    const grid = document.getElementById('gifGrid');
+    grid.innerHTML = '<div class="gif-loading">Φόρτωση...</div>';
+    try {
+      const res = await fetch(`https://tenor.googleapis.com/v2/featured?key=${TENOR_KEY}&limit=9&media_filter=gif`);
+      const data = await res.json();
+      renderGifs(data.results || []);
+    } catch(e) {
+      grid.innerHTML = '<div class="gif-loading">Πρόσθεσε Tenor API key για GIFs!</div>';
+    }
+  }
+
+  window.searchGifs = function(query) {
+    clearTimeout(gifSearchTimeout);
+    if (!query) { loadTrendingGifs(); return; }
+    gifSearchTimeout = setTimeout(async () => {
+      const grid = document.getElementById('gifGrid');
+      grid.innerHTML = '<div class="gif-loading">Αναζήτηση...</div>';
+      try {
+        const res = await fetch(`https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(query)}&key=${TENOR_KEY}&limit=9&media_filter=gif`);
+        const data = await res.json();
+        renderGifs(data.results || []);
+      } catch(e) {
+        grid.innerHTML = '<div class="gif-loading">Σφάλμα αναζήτησης</div>';
+      }
+    }, 500);
+  };
+
+  function renderGifs(results) {
+    const grid = document.getElementById('gifGrid');
+    if (!results.length) { grid.innerHTML = '<div class="gif-loading">Δεν βρέθηκαν GIFs</div>'; return; }
+    grid.innerHTML = '';
+    results.forEach(r => {
+      const url = r.media_formats?.gif?.url || r.media_formats?.tinygif?.url;
+      if (!url) return;
+      const item = document.createElement('div');
+      item.className = 'gif-item';
+      item.innerHTML = `<img src="${url}" loading="lazy">`;
+      item.onclick = () => sendGif(url);
+      grid.appendChild(item);
+    });
+  }
+
+  async function sendGif(url) {
+    if (!currentNick) return;
+    document.getElementById('gifPanel').classList.remove('open');
+    const msgData = { nick: currentNick, gif: url, ts: Date.now(), type: pmTarget ? 'private' : 'user' };
+    if (pmTarget) { msgData.to = pmTarget; cancelPM(); }
+    await push(messagesRef, msgData);
+    await set(ref(db, `leaderboard/${currentNick}`), { nick: currentNick, count: increment(1) });
+  }
+
+  // ---- LEADERBOARD ----
+  window.openLeaderboard = function() {
+    document.getElementById('lbModal').classList.add('open');
+    renderLeaderboard();
+  };
+
+  window.closeLeaderboard = function() {
+    document.getElementById('lbModal').classList.remove('open');
+  };
+
+  window.closeLbIfOutside = function(e) {
+    if (e.target === document.getElementById('lbModal')) closeLeaderboard();
+  };
+
+  async function renderLeaderboard() {
+    const snap = await get(leaderboardRef);
+    const data = snap.val();
+    const content = document.getElementById('lbContent');
+    if (!data) { content.innerHTML = '<div class="lb-empty">Κανείς δεν έχει στείλει μήνυμα ακόμα!</div>'; return; }
+
+    const sorted = Object.values(data).sort((a,b) => b.count - a.count).slice(0, 10);
+    const medals = ['gold','silver','bronze'];
+    content.innerHTML = sorted.map((u, i) => `
+      <div class="lb-row">
+        <div class="lb-rank ${medals[i]||''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+        <div class="lb-nick">#${escHtml(u.nick)}</div>
+        <div class="lb-count">${u.count}</div>
+      </div>`).join('');
+  }
+
+  // ---- INPUT EVENTS ----
+  document.getElementById('chatInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); window.sendMessage(); }
+  });
+
+  document.getElementById('chatInput').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+    // Close gif panel on typing
+    document.getElementById('gifPanel').classList.remove('open');
+  });
+
+  // ---- ADMIN ----
+  window.adminLogin = function() {
+    const pass = document.getElementById('adminPassInput').value;
+    if (pass === ADMIN_PASSWORD) {
+      isAdmin = true;
+      document.getElementById('adminError').style.display = 'none';
+      showScreen('adminScreen');
+      loadAdminChatStatus();
+    } else {
+      document.getElementById('adminError').style.display = 'block';
+    }
+  };
+
+  window.adminLogout = function() {
+    isAdmin = false;
+    get(chatEnabledRef).then(snap => {
+      showScreen(snap.val() ? 'loginScreen' : 'disabledScreen');
+    });
+  };
+
+  function loadAdminChatStatus() {
+    get(chatEnabledRef).then(snap => {
+      const enabled = snap.val();
+      const toggle = document.getElementById('chatToggle');
+      const name = document.getElementById('toggleName');
+      if (enabled) { toggle.classList.add('on'); name.textContent = 'Chat Ανοιχτό ✓'; }
+      else { toggle.classList.remove('on'); name.textContent = 'Chat Κλειστό'; }
+    });
+  }
+
+  window.toggleChat = async function() {
+    const toggle = document.getElementById('chatToggle');
+    const name = document.getElementById('toggleName');
+    const snap = await get(chatEnabledRef);
+    const current = snap.val();
+
+    if (current) {
+      // Closing: reset leaderboard
+      await remove(leaderboardRef);
+    }
+
+    await set(chatEnabledRef, !current);
+    if (!current) {
+      toggle.classList.add('on'); name.textContent = 'Chat Ανοιχτό ✓';
+      showToast('Chat ενεργοποιήθηκε! Countdown ξεκίνησε για χρήστες.');
+    } else {
+      toggle.classList.remove('on'); name.textContent = 'Chat Κλειστό';
+      showToast('Chat απενεργοποιήθηκε! Leaderboard διαγράφηκε.');
+    }
+  };
+
+  window.sendAnnouncement = async function() {
+    const text = document.getElementById('announceInput').value.trim();
+    if (!text) return;
+    await push(messagesRef, { type: 'announcement', text, ts: Date.now() });
+    document.getElementById('announceInput').value = '';
+    showToast('Ανακοίνωση στάλθηκε!');
+  };
+
+  window.kickUser = async function() {
+    const nick = document.getElementById('kickInput').value.trim();
+    if (!nick) return;
+    await set(ref(db, `kicked/${nick}`), true);
+    showToast(`#${nick} kickαρίστηκε!`);
+    document.getElementById('kickInput').value = '';
+  };
+
+  window._deleteMsg = async function(id) {
+    await remove(ref(db, `messages/${id}`));
+  };
+
+  window.clearAllMessages = async function() {
+    if (confirm('Να διαγραφούν όλα τα μηνύματα;')) {
+      await remove(messagesRef);
+      showToast('Όλα τα μηνύματα διαγράφηκαν!');
+    }
+  };
+
+  window.resetSession = async function() {
+    if (confirm('Reset όλης της βραδιάς;')) {
+      await remove(messagesRef);
+      await remove(kickedRef);
+      await remove(presenceRef);
+      await remove(leaderboardRef);
+      await set(chatEnabledRef, false);
+      document.getElementById('chatToggle').classList.remove('on');
+      document.getElementById('toggleName').textContent = 'Chat Κλειστό';
+      showToast('Νέα βραδιά ξεκίνησε!');
+    }
+  };
+
+  // Admin access via URL
+  if (new URLSearchParams(window.location.search).get('admin') === 'true') {
+    showScreen('adminLoginScreen');
+  }
+</script>
+</body>
+</html>
